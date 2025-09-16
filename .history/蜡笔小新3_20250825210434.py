@@ -80,8 +80,7 @@ class DeskPet(QtWidgets.QLabel):
         if not self.isDragging:
             self.currentAction = self.startWalk
             direction = random.choice(["zuo", "you"])
-            self.images = self.loadImages(f"/home/kyle/labi/LaBiDeskPet/resource/sanbu/{direction}")
-
+            self.images = self.loadImages(f"/home/kyle/labi/LaBiDeskPet/resourcesanbu/{direction}")
             self.currentImage = 0
             self.movingDirection = -1 if direction == "zuo" else 1
             self.moveSpeed = 10
@@ -138,7 +137,7 @@ class DeskPet(QtWidgets.QLabel):
     def startFall(self):
         self.setFixedSize(150, 150)
         self.currentAction = self.startFall
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/xialuo")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcexialuo")
         self.currentImage = 0
         self.movingDirection = 0
         self.moveSpeed = 5
@@ -230,7 +229,7 @@ class DeskPet(QtWidgets.QLabel):
 
         self.setFixedSize(400, 200)
         self.currentAction = self.Snack
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/snack")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcesnack")
         if not self.images:
             return
 
@@ -264,7 +263,7 @@ class DeskPet(QtWidgets.QLabel):
     def transform(self):
         self.setFixedSize(160, 130)
         self.currentAction = self.transform
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/xiandanchaoren")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcexiandanchaoren")
         self.currentImage = 0
         self.timer.start(10)
         self.moveSpeed = 0
@@ -273,7 +272,7 @@ class DeskPet(QtWidgets.QLabel):
     def pipi(self):
         self.setFixedSize(300, 130)
         self.currentAction = self.pipi
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/pipi")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcepipi")
         self.currentImage = 0
         self.timer.start(25)
         self.moveSpeed = 0
@@ -282,7 +281,7 @@ class DeskPet(QtWidgets.QLabel):
     def exercise(self):
         self.setFixedSize(150,180 )
         self.currentAction = self.exercise
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/yundong")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourceyundong")
         self.currentImage = 0
         self.timer.start(125)
         self.moveSpeed = 0
@@ -291,7 +290,7 @@ class DeskPet(QtWidgets.QLabel):
     def eating(self):
         self.setFixedSize(160, 90)
         self.currentAction = self.eating
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/eat")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourceeat")
         if not self.images or len(self.images) < 122:  # 强化长度检查
             return
         self.currentImage = 0
@@ -314,7 +313,7 @@ class DeskPet(QtWidgets.QLabel):
         except TypeError:
             pass
 
-        sleep_images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/sleep")
+        sleep_images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcesleep")
         if not sleep_images:
             return
 
@@ -355,7 +354,7 @@ class DeskPet(QtWidgets.QLabel):
         except TypeError:
             pass
 
-        wake_images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/waken")
+        wake_images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcewaken")
         if not wake_images:
             return
 
@@ -415,7 +414,7 @@ class XiaobaiWindow(QtWidgets.QWidget):
         self.setGeometry(500, 500, 125, 100)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.updateAnimation)
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/xiaobai")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcexiaobai")
         self.currentImage = 0
         self.timer.start(20)
         self.dragPosition = QtCore.QPoint()

@@ -80,8 +80,7 @@ class DeskPet(QtWidgets.QLabel):
         if not self.isDragging:
             self.currentAction = self.startWalk
             direction = random.choice(["zuo", "you"])
-            self.images = self.loadImages(f"/home/kyle/labi/LaBiDeskPet/resource/sanbu/{direction}")
-
+            self.images = self.loadImages(f"/home/kyle/labi/LaBiDeskPet/resourcesanbu/{direction}")
             self.currentImage = 0
             self.movingDirection = -1 if direction == "zuo" else 1
             self.moveSpeed = 10
@@ -273,7 +272,7 @@ class DeskPet(QtWidgets.QLabel):
     def pipi(self):
         self.setFixedSize(300, 130)
         self.currentAction = self.pipi
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/pipi")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcepipi")
         self.currentImage = 0
         self.timer.start(25)
         self.moveSpeed = 0
@@ -355,7 +354,7 @@ class DeskPet(QtWidgets.QLabel):
         except TypeError:
             pass
 
-        wake_images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/waken")
+        wake_images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcewaken")
         if not wake_images:
             return
 
@@ -415,7 +414,7 @@ class XiaobaiWindow(QtWidgets.QWidget):
         self.setGeometry(500, 500, 125, 100)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.updateAnimation)
-        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resource/xiaobai")
+        self.images = self.loadImages("/home/kyle/labi/LaBiDeskPet/resourcexiaobai")
         self.currentImage = 0
         self.timer.start(20)
         self.dragPosition = QtCore.QPoint()

@@ -80,8 +80,7 @@ class DeskPet(QtWidgets.QLabel):
         if not self.isDragging:
             self.currentAction = self.startWalk
             direction = random.choice(["zuo", "you"])
-            self.images = self.loadImages(f"/home/kyle/labi/LaBiDeskPet/resource/sanbu/{direction}")
-
+            self.images = self.loadImages(f"/home/kyle/labi/LaBiDeskPet/resourcesanbu/{direction}")
             self.currentImage = 0
             self.movingDirection = -1 if direction == "zuo" else 1
             self.moveSpeed = 10
