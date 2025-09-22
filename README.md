@@ -1,3 +1,4 @@
+不同平台应用不同的打包，pyinstall并不支持跨平台  
 
 ### Windows下用pyinstall打包指令
 ```bash
