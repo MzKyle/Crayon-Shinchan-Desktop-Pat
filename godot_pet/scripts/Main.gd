@@ -6,6 +6,7 @@ const InteractionScript = preload("res://scripts/InteractionController.gd")
 const BehaviorBrainScript = preload("res://scripts/BehaviorBrain.gd")
 const MiniGamesScript = preload("res://scripts/MiniGames.gd")
 const StateStoreScript = preload("res://scripts/StateStore.gd")
+const ScreenshotPinsScript = preload("res://scripts/ScreenshotPins.gd")
 
 const MENU_WALK := 1
 const MENU_FEED := 2
@@ -21,6 +22,7 @@ const MENU_MISCHIEF := 22
 const MENU_CLEAR := 30
 const MENU_TOGGLE_GRAVITY := 40
 const MENU_EXIT_PEEK := 41
+const MENU_SCREENSHOT_SETTINGS := 50
 const MENU_EXIT := 99
 
 const HIDE_EDGE_THRESHOLD := 52.0
@@ -36,6 +38,7 @@ var interaction
 var brain
 var mini_games
 var state_store
+var screenshot_pins
 var popup: PopupMenu
 var bubble: Label
 var bubble_timer: Timer
@@ -76,6 +79,8 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if screenshot_pins != null and screenshot_pins.handle_input(event):
+		return
 	if mischief_grab_active:
 		if event is InputEventMouseButton and event.pressed and _mischief_stop_rect().has_point(event.position):
 			_stop_mischief_grab()
@@ -182,6 +187,11 @@ func _create_nodes() -> void:
 	brain.mischief_requested.connect(_on_mischief)
 	brain.set_mode(behavior_mode)
 
+	screenshot_pins = ScreenshotPinsScript.new()
+	add_child(screenshot_pins)
+	screenshot_pins.notify.connect(_on_screenshot_pins_notify)
+	screenshot_pins.configure(repo_root)
+
 	popup = PopupMenu.new()
 	add_child(popup)
 	popup.id_pressed.connect(_on_menu_id_pressed)
@@ -236,17 +246,20 @@ func _update_pet_pose(delta: float) -> void:
 	if mischief_grab_active:
 		_apply_mischief_grab_pose(delta)
 		return
-	pet_sprite.position = Vector2(get_window().size) * 0.5
 	if landing_squash > 0.0:
+		pet_sprite.position = Vector2(get_window().size) * 0.5
 		landing_squash = max(0.0, landing_squash - delta * 3.2)
 		pet_sprite.squash(landing_squash)
 	elif physics.state == "Flinging" or physics.state == "Falling":
+		pet_sprite.position = Vector2(get_window().size) * 0.5
 		pet_sprite.lean_from_velocity(physics.velocity)
 	elif physics.state == "Grabbed":
+		pet_sprite.position = Vector2(get_window().size) * 0.5
 		pet_sprite.sprite.rotation = sin(Time.get_ticks_msec() / 90.0) * 0.10
 	elif physics.state == "WallAttached" or physics.state == "EdgeWalk":
 		_apply_wall_walk_pose()
 	else:
+		pet_sprite.position = Vector2(get_window().size) * 0.5
 		pet_sprite.reset_transform()
 
 
@@ -266,7 +279,8 @@ func _movement_contact_rect() -> Rect2:
 		return Rect2(Vector2.ZERO, window_size)
 
 	var rect = _pet_visible_rect_for_physics()
-	return Rect2(pet_sprite.position + rect.position, rect.size)
+	var anchor = _pet_anchor_position_for_physics(window_size, rect)
+	return Rect2(anchor + rect.position, rect.size)
 
 
 func _pet_visible_rect_for_physics() -> Rect2:
@@ -279,6 +293,18 @@ func _pet_visible_rect_for_physics() -> Rect2:
 		var rotation = clamp(physics.velocity.x / 1800.0, -0.35, 0.35)
 		return pet_sprite.visible_rect_for_rotation(rotation)
 	return pet_sprite.visible_rect_for_rotation(0.0)
+
+
+func _pet_anchor_position_for_physics(window_size: Vector2, visible_rect: Rect2) -> Vector2:
+	var anchor = window_size * 0.5
+	if physics == null:
+		return anchor
+	if (physics.state == "WallAttached" or physics.state == "EdgeWalk") and physics.wall_side != 0:
+		if physics.wall_side > 0:
+			anchor.x = -visible_rect.position.x
+		else:
+			anchor.x = window_size.x - visible_rect.position.x - visible_rect.size.x
+	return anchor
 
 
 func _on_single_clicked(local_pos: Vector2) -> void:
@@ -388,7 +414,8 @@ func _on_behavior_action(action_name: String) -> void:
 
 func _on_mischief(kind: String) -> void:
 	if kind == "grab":
-		_start_mischief_grab()
+		if not _start_mischief_grab():
+			brain.schedule_soon(2.0)
 	elif kind == "note":
 		_spawn_note()
 	else:
@@ -419,6 +446,10 @@ func _show_status() -> void:
 	show_bubble("心情 %d / 饥饿 %d / 体力 %d / 亲密 %d" % [s["mood"], s["hunger"], s["energy"], s["affection"]], 3.0)
 
 
+func _on_screenshot_pins_notify(text: String) -> void:
+	show_bubble(text, 2.2)
+
+
 func _show_menu() -> void:
 	popup.clear()
 	popup.add_item("散步", MENU_WALK)
@@ -434,6 +465,7 @@ func _show_menu() -> void:
 	popup.add_item("关闭重力：悬浮" if gravity_enabled else "开启重力：落地", MENU_TOGGLE_GRAVITY)
 	if peek_mode:
 		popup.add_item("出来", MENU_EXIT_PEEK)
+	popup.add_item("截图贴图设置", MENU_SCREENSHOT_SETTINGS)
 	popup.add_separator()
 	popup.add_check_item("安静模式", MENU_QUIET)
 	popup.add_check_item("活泼模式", MENU_ACTIVE)
@@ -475,6 +507,8 @@ func _on_menu_id_pressed(id: int) -> void:
 			_set_gravity_enabled(not gravity_enabled)
 		MENU_EXIT_PEEK:
 			_exit_peek_mode(true)
+		MENU_SCREENSHOT_SETTINGS:
+			screenshot_pins.open_settings()
 		MENU_QUIET:
 			_set_behavior_mode("安静")
 		MENU_ACTIVE:
@@ -533,9 +567,9 @@ func _set_gravity_enabled(value: bool) -> void:
 		show_bubble("重力关闭，悬浮模式。")
 
 
-func _start_mischief_grab() -> void:
+func _start_mischief_grab() -> bool:
 	if behavior_mode != "捣乱" or _busy():
-		return
+		return false
 	mischief_grab_active = true
 	mischief_elapsed = 0.0
 	mischief_cursor_local = get_viewport().get_mouse_position()
@@ -550,6 +584,7 @@ func _start_mischief_grab() -> void:
 	show_bubble("嘿嘿，鼠标借我一下。", 1.25)
 	_tick_mischief_grab(0.0)
 	_update_mouse_passthrough()
+	return true
 
 
 func _stop_mischief_grab(announce := true) -> void:
@@ -648,6 +683,8 @@ func _apply_wall_walk_pose() -> void:
 		pet_sprite.sprite.rotation = PI * 0.5
 	else:
 		pet_sprite.sprite.rotation = -PI * 0.5
+	var rect = _pet_visible_rect_for_physics()
+	pet_sprite.position = _pet_anchor_position_for_physics(Vector2(get_window().size), rect)
 
 
 func _wall_walk_action() -> String:

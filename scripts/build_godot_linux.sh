@@ -33,6 +33,10 @@ copy_external_assets() {
   if [[ -d "$ROOT_DIR/assets" ]]; then
     cp -a "$ROOT_DIR/assets" "$DIST_DIR/assets"
   fi
+
+  mkdir -p "$DIST_DIR/scripts"
+  cp "$ROOT_DIR/scripts/pet_hotkeys_x11.py" "$DIST_DIR/scripts/pet_hotkeys_x11.py"
+  chmod +x "$DIST_DIR/scripts/pet_hotkeys_x11.py"
 }
 
 if [[ "$USE_EXPORT" == "1" ]]; then

@@ -14,6 +14,7 @@ window/size/borderless=true
 window/size/always_on_top=true
 window/size/transparent=true
 window/size/resizable=false
+window/subwindows/embed_subwindows=false
 window/per_pixel_transparency/allowed=true
 
 [rendering]

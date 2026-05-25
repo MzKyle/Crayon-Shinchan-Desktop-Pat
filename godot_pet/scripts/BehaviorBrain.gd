@@ -19,12 +19,16 @@ func _ready() -> void:
 
 
 func set_mode(value: String) -> void:
+	var previous_mode = mode
 	if value in ["安静", "活泼", "捣乱"]:
 		mode = value
 	else:
 		mode = "安静"
 	if timer != null:
-		schedule_next()
+		if mode == "捣乱" and previous_mode != "捣乱":
+			schedule_soon()
+		else:
+			schedule_next()
 
 
 func set_paused(value: bool) -> void:
@@ -36,6 +40,11 @@ func schedule_next() -> void:
 		timer.start(rng.randf_range(20.0, 40.0))
 	else:
 		timer.start(rng.randf_range(4.0, 8.0))
+
+
+func schedule_soon(seconds := 1.0) -> void:
+	if timer != null:
+		timer.start(max(0.1, seconds))
 
 
 func _decide() -> void:

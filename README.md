@@ -1,121 +1,231 @@
-## 蜡笔小新桌宠 v2
+<p align="center">
+  <img src="docs/assets/cover.svg" alt="蜡笔小新桌宠项目封面" width="100%" />
+</p>
 
-Godot 4 驱动的本地桌宠，支持透明置顶窗口、长按抱起、甩飞、重力、贴边偷看、主动行为、小游戏和三种行为模式。项目已收敛为 Godot-only；Python 脚本仅用于资源生成和素材处理。
+# 蜡笔小新桌宠
 
-### 启动
+Godot 4 驱动的本地透明桌宠：支持长按抱起、甩飞、重力落地、贴边偷看、主动行为、小游戏和 Linux/X11 截图贴图。
 
-首次准备 Godot portable：
+<p>
+  <a href="https://github.com/MzKyle/Crayon-Shinchan-Desktop-Pat"><img alt="GitHub repo" src="https://img.shields.io/badge/GitHub-MzKyle%2FCrayon--Shinchan--Desktop--Pat-181717?logo=github" /></a>
+  <img alt="Godot" src="https://img.shields.io/badge/Godot-4.6-478CBF?logo=godot-engine&logoColor=white" />
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Linux%20desktop-22c55e" />
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" />
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-blue" />
+</p>
 
-```bash
-scripts/setup_godot.sh
+功能特性 · 系统架构 · 快速开始 · 打包发布 · [完整文档](docs/)
+
+## 功能特性
+
+- 透明、置顶、无边框 Godot 桌宠窗口，支持安全窗口模式兜底
+- 长按抱起、弹簧跟随、快速甩飞、重力落地、墙面反弹和贴边吸附
+- 拖到屏幕边缘释放后进入贴边偷看，点击或拖拽即可唤回
+- 安静、活泼、捣乱三种行为模式，默认安静启动
+- 右键菜单支持散步、投喂、睡觉、唤醒、接球挑战、显示大小、重力开关和退出
+- Linux/X11 截图贴图：`F1` 区域截图、`F3` 轮换贴图、`F4` 关闭当前贴图
+- 心情、饥饿、体力、亲密度本地持久化
+- `resource_hd/` 高清资源优先加载，缺失时回退到 `resource/`
+- portable Godot runtime bundle 打包，也支持安装 export templates 后走 Godot export
+
+## 系统架构
+
+```mermaid
+flowchart LR
+  Main["Main.gd<br/>窗口 / 菜单 / 生命周期"] --> Sprite["PetSprite.gd<br/>动作帧"]
+  Main --> Physics["PetPhysics.gd<br/>物理状态"]
+  Main --> Input["InteractionController.gd<br/>点击 / 长按 / 甩飞"]
+  Main --> Brain["BehaviorBrain.gd<br/>行为模式"]
+  Main --> Games["MiniGames.gd<br/>投喂 / 接球"]
+  Main --> State["StateStore.gd<br/>状态保存"]
+  Main --> Pins["ScreenshotPins.gd<br/>截图贴图"]
+  Sprite --> Manifest["actions.json"]
+  Manifest --> Frames["resource_hd / resource"]
+  Pins --> Hotkeys["pet_hotkeys_x11.py<br/>X11 全局快捷键"]
+  Pins --> Config["~/.config/crayon-shinchan-desktop-pet"]
 ```
 
-生成动作清单并启动：
+核心链路是：`Main.gd` 编排 Godot 窗口、动画、物理、输入和菜单；`PetPhysics.gd` 计算窗口坐标；`PetSprite.gd` 加载动作帧；截图贴图模块通过 Godot 子窗口和 X11 快捷键辅助脚本扩展桌面能力。
+
+## 技术栈
+
+| 层级 | 技术 | 用途 |
+| --- | --- | --- |
+| 桌面运行时 | Godot 4.6 | 透明窗口、2D 渲染、输入事件、子窗口 |
+| 主逻辑 | GDScript | 桌宠状态、物理、行为、小游戏、截图贴图 |
+| 工具脚本 | Python 3 / Bash | 资源生成、Godot 准备、X11 快捷键桥接、打包 |
+| 截图后端 | KDE Spectacle / ImageMagick `import` | Linux 区域截图 |
+| 文档 | docsify / Mermaid | 文档站、架构图和模块说明 |
+
+## 项目结构
+
+```text
+.
+├── docs/                  # docsify 项目文档
+├── godot_pet/             # Godot 项目
+│   ├── assets/actions.json
+│   ├── scenes/Main.tscn
+│   └── scripts/           # 桌宠核心 GDScript
+├── resource/              # 原始动作帧
+├── resource_hd/           # 高清动作帧
+├── assets/                # 特效、小游戏、偷看和素材来源说明
+├── scripts/               # 启动、生成、打包和 X11 快捷键脚本
+├── packaging/             # Linux desktop entry 模板
+└── requirements.txt
+```
+
+## 环境要求
+
+- Linux 桌面环境
+- Godot 4.6.x，或让 `scripts/setup_godot.sh` 自动下载 portable 版本
+- Python 3.10+
+- 可选：KDE Spectacle 或 ImageMagick，用于截图贴图
+- 可选：Godot export templates，用于正式 export
+
+## 快速开始
 
 ```bash
+python3 -m pip install -r requirements.txt
+scripts/setup_godot.sh
 python3 scripts/generate_godot_manifest.py
 scripts/run_godot_pet.sh
 ```
 
-`scripts/setup_godot.sh` 会优先使用 `GODOT_BIN`、系统 `godot4/godot`，找不到时下载官方 Linux x86_64 portable Godot 到 `tools/godot/`。二进制不会提交到仓库。
-
-如果透明窗口在当前桌面环境里显示异常，可临时使用安全窗口模式：
+如果透明窗口在当前桌面环境里显示异常：
 
 ```bash
 CRAYON_PET_SAFE_WINDOW=1 scripts/run_godot_pet.sh
 ```
 
-### 行为模式
-
-启动默认进入“安静模式”，模式不会跨启动保存。
-
-- 安静模式：不自动散步、不贴边走、不触发捣乱；右键菜单里的“散步”等手动操作仍可用。
-- 活泼模式：保留随机散步、贴边走、邀请玩和脚印小特效。
-- 捣乱模式：每 20-40 秒温和触发一次 4 秒“费力抢鼠标”视觉演出；小新会贴近并跟随光标，但不会移动、锁定或改变系统鼠标位置。
-
-捣乱演出期间，透明窗口只保留右上角“停”按钮区域接收点击，其它区域会穿透到桌面。该行为依赖 Godot `Window.mouse_passthrough_polygon`：多边形内接收鼠标事件，多边形外穿透，空数组恢复默认拦截行为。
-
-### 互动
-
-- 长按 350ms：抱起，小新会用弹簧滞后跟随鼠标。
-- 快速释放：按释放速度甩飞，受重力、阻尼、地面/墙面反弹影响。
-- 慢速释放：轻放并恢复。
-- 碰到屏幕边缘：反弹或贴边，贴边后可沿边走。
-- 长按拖到屏幕边缘或角落释放：小新会藏到屏幕外，只露出一条偷看；单击或拖拽可把他叫出来。
-- 单击头部：摸摸头。
-- 单击身体：戳一戳。
-- 双击：进入接球小游戏。
-- 滚轮：显示状态气泡。
-- 右键：动作、小游戏、显示大小、重力切换、安静/活泼/捣乱模式、清理、退出。
-
-### 互动特效资源
-
-`assets/effects/` 和 `assets/games/` 内的爱心、闪光、饭团、球、靶心、奖杯、计时器等图标来自 Google Noto Emoji，用于摸摸头、投喂、陪玩、睡觉/唤醒和小游戏反馈。
-
-需要重新下载这些开源素材时：
+## 常用命令
 
 ```bash
-scripts/download_effect_assets.sh
-```
-
-`assets/character/` 里放了本地个人使用的偷看 PNG 源图和由脚本生成的四个方向贴边 PNG。重新生成：
-
-```bash
-python3 scripts/generate_peek_assets.py
-```
-
-`assets/character/mischief/` 里记录“费力抢鼠标”候选 PNG 的来源；生成动作帧：
-
-```bash
-python3 scripts/generate_mischief_grab_assets.py
 python3 scripts/generate_godot_manifest.py
-```
-
-### 高清资源
-
-原始动画帧保留在 `resource/`，高清副本生成到 `resource_hd/`。应用运行时会优先使用 `resource_hd/`，缺失时回退到 `resource/`。
-
-重新生成高清副本：
-
-```bash
 python3 scripts/generate_hd_assets.py --source resource --output resource_hd --scale 3 --force
-```
-
-右键菜单中的“显示大小”可以切换 `100% / 125% / 150%`。
-
-### 安装依赖
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-### Linux 打包和桌面入口
-
-```bash
+scripts/run_godot_pet.sh
 scripts/build_godot_linux.sh
 scripts/install_desktop_entry.sh
 ```
 
-Godot 打包结果位于 `dist/GodotShinchanPet/CrayonShinchanGodotPet`。当前 Godot 构建脚本默认使用官方 runtime + 项目资源的 portable bundle，避免首次构建下载很大的 export templates。安装 Godot export templates 后可运行：
+## 使用说明
+
+| 操作 | 效果 |
+| --- | --- |
+| 单击头部 | 摸摸头 |
+| 单击身体 | 戳一戳 |
+| 长按 350ms | 抱起并跟随鼠标 |
+| 快速释放 | 甩飞并受重力影响 |
+| 拖到屏幕边缘释放 | 进入贴边偷看 |
+| 双击 | 开始接球挑战 |
+| 滚轮 | 显示心情、饥饿、体力和亲密度 |
+| 右键 | 打开动作、模式、截图贴图设置和退出菜单 |
+
+截图贴图默认快捷键：
+
+| 快捷键 | 效果 |
+| --- | --- |
+| `F1` | 区域截图，保存历史并复制到剪贴板 |
+| `F3` | 按最近、上一次、上上次顺序贴图 |
+| `F4` | 关闭当前贴图 |
+
+## 打包发布
+
+默认 portable bundle：
+
+```bash
+scripts/build_godot_linux.sh
+```
+
+产物位于：
+
+```text
+dist/GodotShinchanPet/CrayonShinchanGodotPet
+```
+
+使用 Godot export：
 
 ```bash
 scripts/setup_godot_export_templates.sh
 scripts/build_godot_linux.sh --export
 ```
 
-这会使用 `godot_pet/export_presets.cfg` 走 Godot Linux export。
+安装桌面入口：
 
-状态会保存到：
+```bash
+scripts/install_desktop_entry.sh
+```
+
+## 数据与配置
+
+运行时状态保存在：
 
 ```text
 ~/.config/crayon-shinchan-desktop-pet/state.json
 ```
 
+截图贴图配置和历史保存在：
+
+```text
+~/.config/crayon-shinchan-desktop-pet/config.json
+~/.config/crayon-shinchan-desktop-pet/screenshots/
+```
+
 行为模式不写入状态文件，每次启动都会回到安静模式。
 
-### 参考来源
+## 文档
 
-- VPet: https://github.com/LorisYounger/VPet
-- Shimeji-ee: https://github.com/gil/shimeji-ee
-- Godot Window: https://docs.godotengine.org/en/4.6/classes/class_window.html
-- Godot Linux export: https://docs.godotengine.org/en/4.6/tutorials/export/exporting_for_linux.html
+完整文档见 [docs/](docs/)。
+
+本地预览：
+
+```bash
+cd docs
+python3 -m http.server 4173 --bind 127.0.0.1
+```
+
+访问：
+
+```text
+http://127.0.0.1:4173/
+```
+
+## 常见问题
+
+### 透明窗口异常怎么办？
+
+先用安全窗口模式确认项目逻辑：
+
+```bash
+CRAYON_PET_SAFE_WINDOW=1 scripts/run_godot_pet.sh
+```
+
+### 全局快捷键不生效怎么办？
+
+全局快捷键目前主要支持 Linux/X11。Wayland 下会保留应用内快捷键兜底。也可以显式关闭全局快捷键：
+
+```bash
+CRAYON_PET_ENABLE_GLOBAL_HOTKEYS=0 scripts/run_godot_pet.sh
+```
+
+### 新动作资源不生效怎么办？
+
+重新生成动作清单：
+
+```bash
+python3 scripts/generate_godot_manifest.py
+```
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request。建议 PR 描述中包含问题背景、主要修改内容、本地验证方式；涉及 UI 或桌面交互时，请附截图或录屏。
+
+## 许可
+
+代码基于 [MIT License](LICENSE) 开源。角色相关素材属于粉丝项目素材，请仅在学习、研究和个人桌面使用场景中使用；第三方图标素材来源和授权见各目录下的 `NOTICE.md`。
+
+## 致谢与参考
+
+- [Godot Engine](https://godotengine.org/)
+- [VPet](https://github.com/LorisYounger/VPet)
+- [Shimeji-ee](https://github.com/gil/shimeji-ee)
+- Google Noto Emoji
