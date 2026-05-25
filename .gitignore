@@ -1,4 +1,12 @@
 /build
+/dist
+__pycache__/
+*.py[cod]
+*.spec
 /.idea
 /.vscode
 /.history
+/tools
+/godot_pet/.godot
+/godot_pet/.import
+/godot_pet/*.tmp

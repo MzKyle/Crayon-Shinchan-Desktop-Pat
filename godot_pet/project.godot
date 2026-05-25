@@ -1,0 +1,22 @@
+config_version=5
+
+[application]
+
+config/name="Crayon Shinchan Godot Pet"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.6")
+
+[display]
+
+window/size/viewport_width=420
+window/size/viewport_height=260
+window/size/borderless=true
+window/size/always_on_top=true
+window/size/transparent=true
+window/size/resizable=false
+window/per_pixel_transparency/allowed=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+environment/defaults/default_clear_color=Color(0, 0, 0, 0)
