@@ -2,11 +2,21 @@
 
 ## 打包入口
 
-主入口是：
+Linux runtime bundle 入口是：
 
 ```text
 scripts/build_godot_linux.sh
 ```
+
+跨平台 portable zip 入口是：
+
+```bash
+python3 scripts/build_portable.py --target linux
+python3 scripts/build_portable.py --target windows
+python3 scripts/build_portable.py --target macos
+```
+
+本地通常只构建当前系统对应的 target；三平台产物由 GitHub Actions 在对应 runner 上构建。
 
 它会先执行：
 
@@ -25,7 +35,7 @@ python3 scripts/generate_godot_manifest.py
 3. 复制 Godot runtime 为 `GodotPetRuntime`
 4. 复制 `godot_pet/`
 5. 复制 `resource/`、`resource_hd/`、`assets/`
-6. 复制 `scripts/pet_hotkeys_x11.py`
+6. 复制 `scripts/pet_helper.py` 和可选的 `scripts/pet_helper`
 7. 写入启动脚本 `CrayonShinchanGodotPet`
 
 启动脚本会设置：
@@ -59,7 +69,19 @@ GodotPetRuntime --path godot_pet
 scripts/setup_godot_export_templates.sh
 ```
 
-导出成功后仍会复制外部资源目录，因为当前项目运行时需要从仓库根或打包根加载资源。
+导出成功后仍会复制外部资源目录，因为当前项目运行时需要从仓库根、打包根或 macOS `.app` 的上级目录加载资源。
+
+## 三平台 portable zip
+
+`scripts/build_portable.py` 会：
+
+1. 生成 `godot_pet/assets/actions.json`
+2. 用 PyInstaller 构建 `pet_helper`
+3. 调用 Godot export preset 导出 Linux、Windows 或 macOS
+4. 复制 `resource/`、`resource_hd/`、`assets/` 和 helper
+5. 输出 `dist/CrayonShinchanPet-<platform>.zip`
+
+GitHub Actions 工作流 `.github/workflows/package.yml` 支持手动触发，也会在推送 `v*` 标签时构建三平台 zip artifact。
 
 ## desktop entry
 
@@ -77,5 +99,6 @@ packaging/crayon-shinchan-desktop-pet.desktop.in
 | --- | --- |
 | 找不到 Godot | 运行 `scripts/setup_godot.sh` 或设置 `GODOT_BIN` |
 | export templates 缺失 | 运行 `scripts/setup_godot_export_templates.sh` |
-| 打包后没有全局快捷键 | 确认 `scripts/pet_hotkeys_x11.py` 已被复制并有可执行权限 |
+| 打包后没有全局快捷键 | 确认 `scripts/pet_helper` 已被复制并有可执行权限；macOS 检查辅助功能权限 |
+| Linux 截图没有复制到剪贴板 | 安装 `wl-copy` 或 `xclip` |
 | 透明窗口异常 | 运行时设置 `CRAYON_PET_SAFE_WINDOW=1` 排查 |

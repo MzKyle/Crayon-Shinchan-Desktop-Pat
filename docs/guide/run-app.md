@@ -40,7 +40,7 @@ CRAYON_PET_SAFE_WINDOW=1 scripts/run_godot_pet.sh
 | `CRAYON_PET_ALWAYS_ON_TOP` | `1` | 是否置顶 |
 | `CRAYON_PET_BORDERLESS` | `1` | 是否无边框 |
 | `CRAYON_PET_MOUSE_PASSTHROUGH` | `1` | 是否启用鼠标穿透多边形 |
-| `CRAYON_PET_ENABLE_GLOBAL_HOTKEYS` | `1` | 是否启用 X11 全局快捷键辅助进程 |
+| `CRAYON_PET_ENABLE_GLOBAL_HOTKEYS` | `1` | 是否启用跨平台全局快捷键辅助进程 |
 
 ## 运行后的入口
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
 from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "assets" / "character" / "source_shinchan_kindpng.png"
 OUT_DIR = ROOT / "assets" / "character"
 CANVAS = (112, 140)
 TARGET_HEIGHT = 132
@@ -47,15 +47,23 @@ def make_canvas(source: Image.Image, x: int, y: int) -> Image.Image:
     return canvas
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source", type=Path, required=True, help="Source character PNG.")
+    return parser.parse_args()
+
+
 def main() -> int:
-    if not SOURCE.exists():
-        raise SystemExit(f"Missing source image: {SOURCE}")
+    args = parse_args()
+    source_path = args.source.expanduser().resolve()
+    if not source_path.exists():
+        raise SystemExit(f"Missing source image: {source_path}")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    source = remove_flat_background(Image.open(SOURCE))
+    source = remove_flat_background(Image.open(source_path))
     bbox = source.getbbox()
     if bbox is None:
-        raise SystemExit(f"Source image is fully transparent: {SOURCE}")
+        raise SystemExit(f"Source image is fully transparent: {source_path}")
     body = source.crop(bbox)
     body = fit_to_height(body, TARGET_HEIGHT)
     body_left = body.transpose(Image.Transpose.FLIP_LEFT_RIGHT)

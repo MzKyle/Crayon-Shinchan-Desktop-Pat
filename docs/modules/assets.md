@@ -75,13 +75,13 @@ resource/<action_frame>
 重新生成贴边偷看图：
 
 ```bash
-python3 scripts/generate_peek_assets.py
+python3 scripts/generate_peek_assets.py --source /path/to/source.png
 ```
 
 重新生成捣乱动作帧：
 
 ```bash
-python3 scripts/generate_mischief_grab_assets.py
+python3 scripts/generate_mischief_grab_assets.py --source /path/to/source.png
 python3 scripts/generate_godot_manifest.py
 ```
 

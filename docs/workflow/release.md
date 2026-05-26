@@ -23,7 +23,17 @@ python3 -m http.server 4173 --bind 127.0.0.1
 
 ## 打包
 
-默认 portable bundle：
+跨平台 portable zip：
+
+```bash
+python3 scripts/build_portable.py --target linux
+python3 scripts/build_portable.py --target windows
+python3 scripts/build_portable.py --target macos
+```
+
+本地通常只构建当前系统对应的 target；三平台产物由 GitHub Actions 在对应 runner 上构建。
+
+Linux runtime bundle：
 
 ```bash
 scripts/build_godot_linux.sh
@@ -60,7 +70,8 @@ dist/GodotShinchanPet/CrayonShinchanGodotPet
 - 拖到屏幕边缘可进入偷看
 - 活泼模式会自动散步或贴边
 - 捣乱模式可开始和停止
-- `F1`、`F3`、`F4` 在 X11 下可用
+- `F1`、`F3`、`F4` 在目标系统下可用
+- 截图可拖选区域，并能复制图片到剪贴板
 
 ## 开源发布前检查
 

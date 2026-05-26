@@ -20,7 +20,6 @@ const DEFAULT_CONFIG := {
 var working_config := {}
 var capture_target := ""
 var shortcut_buttons := {}
-var backend_option: OptionButton
 var max_pins_spin: SpinBox
 var status_label: Label
 
@@ -82,17 +81,6 @@ func _build_ui() -> void:
 	_add_shortcut_row(grid, "贴图", "paste_pin")
 	_add_shortcut_row(grid, "关闭贴图", "close_pin")
 
-	var backend_label = Label.new()
-	backend_label.text = "截图后端"
-	grid.add_child(backend_label)
-
-	backend_option = OptionButton.new()
-	backend_option.add_item("auto")
-	backend_option.add_item("spectacle")
-	backend_option.add_item("import")
-	backend_option.item_selected.connect(_on_backend_selected)
-	grid.add_child(backend_option)
-
 	var max_label = Label.new()
 	max_label.text = "最大贴图数"
 	grid.add_child(max_label)
@@ -152,10 +140,6 @@ func _begin_capture(key: String) -> void:
 	_set_status("按下新的快捷键。")
 
 
-func _on_backend_selected(index: int) -> void:
-	working_config["screenshot"]["backend"] = backend_option.get_item_text(index)
-
-
 func _on_max_pins_changed(value: float) -> void:
 	working_config["pins"]["max_count"] = clampi(roundi(value), 1, 3)
 
@@ -181,13 +165,6 @@ func _close_without_save() -> void:
 
 func _apply_to_controls() -> void:
 	_update_shortcut_buttons()
-	var backend = str(working_config["screenshot"].get("backend", "auto"))
-	var backend_index = 0
-	for i in range(backend_option.item_count):
-		if backend_option.get_item_text(i) == backend:
-			backend_index = i
-			break
-	backend_option.select(backend_index)
 	max_pins_spin.value = clampi(int(working_config["pins"].get("max_count", 3)), 1, 3)
 	_set_status("")
 
@@ -211,9 +188,6 @@ func _merged_config(config: Dictionary) -> Dictionary:
 		for key in merged["shortcuts"].keys():
 			if config["shortcuts"].has(key):
 				merged["shortcuts"][key] = str(config["shortcuts"][key])
-	if config.has("screenshot") and typeof(config["screenshot"]) == TYPE_DICTIONARY:
-		if config["screenshot"].has("backend"):
-			merged["screenshot"]["backend"] = str(config["screenshot"]["backend"])
 	if config.has("pins") and typeof(config["pins"]) == TYPE_DICTIONARY:
 		if config["pins"].has("max_count"):
 			merged["pins"]["max_count"] = clampi(int(config["pins"]["max_count"]), 1, 3)

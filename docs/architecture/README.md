@@ -4,7 +4,7 @@
 
 1. Godot 桌宠运行层：处理窗口、渲染、输入、物理、行为、小游戏和截图贴图。
 2. 资源与构建脚本层：负责动作帧清单、高清资源生成、Godot runtime 准备、打包和桌面入口。
-3. 系统集成层：依赖 Linux 桌面窗口系统、X11 全局快捷键、截图后端和用户配置目录。
+3. 系统集成层：依赖桌面窗口系统、跨平台 helper、截图/剪贴板后端和用户配置目录。
 
 ## 运行时结构
 
@@ -20,7 +20,7 @@ flowchart TB
 
   Pins --> PinWindow["PinImageWindow.gd"]
   Pins --> SettingsWindow["ScreenshotSettingsWindow.gd"]
-  Pins --> Hotkeys["pet_hotkeys_x11.py"]
+  Pins --> Hotkeys["pet_helper"]
 
   Sprite --> Manifest["actions.json"]
   Manifest --> Frames["resource_hd / resource"]
@@ -49,5 +49,5 @@ flowchart TB
 | 透明背景 | Godot Window + 合成器 | 安全窗口模式可绕过 |
 | 鼠标穿透 | `Window.mouse_passthrough_polygon` | 用多边形控制可点击区域 |
 | 置顶窗口 | 桌面环境窗口管理器 | 部分 Wayland 合成器限制更多 |
-| 全局快捷键 | X11 `XGrabKey` | Wayland 下默认关闭 |
-| 区域截图 | Spectacle 或 ImageMagick `import` | Spectacle 可复制到剪贴板 |
+| 全局快捷键 | `pet_helper` / X11 `XGrabKey` / `pynput` | Wayland 下默认关闭，macOS 可能需要辅助功能权限 |
+| 区域截图 | Godot `DisplayServer` | Linux 上保留 Spectacle 或 ImageMagick 兜底 |

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 from collections import deque
 from pathlib import Path
 
@@ -8,7 +9,6 @@ from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "assets" / "character" / "mischief" / "source_shinchan_kindpng_hToJJRb.png"
 OUT_DIR = ROOT / "resource" / "mischief_grab"
 CANVAS = (260, 220)
 TARGET_HEIGHT = 188
@@ -51,7 +51,7 @@ def remove_edge_background(image: Image.Image) -> Image.Image:
 def fit_body(image: Image.Image) -> Image.Image:
     bbox = image.getbbox()
     if bbox is None:
-        raise SystemExit(f"Source image is fully transparent: {SOURCE}")
+        raise SystemExit("Source image is fully transparent.")
     body = image.crop(bbox)
     ratio = TARGET_HEIGHT / body.height
     if body.width * ratio > MAX_WIDTH:
@@ -73,12 +73,20 @@ def make_frame(body: Image.Image, angle: float, scale: float, dx: int, dy: int) 
     return canvas
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source", type=Path, required=True, help="Source character PNG.")
+    return parser.parse_args()
+
+
 def main() -> int:
-    if not SOURCE.exists():
-        raise SystemExit(f"Missing source image: {SOURCE}")
+    args = parse_args()
+    source_path = args.source.expanduser().resolve()
+    if not source_path.exists():
+        raise SystemExit(f"Missing source image: {source_path}")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    body = fit_body(remove_edge_background(Image.open(SOURCE)))
+    body = fit_body(remove_edge_background(Image.open(source_path)))
     frames = [
         make_frame(body, -4.0, 1.00, -1, 1),
         make_frame(body, 3.5, 1.02, 3, -2),

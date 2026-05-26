@@ -4,12 +4,12 @@
 
 # 蜡笔小新桌宠
 
-Godot 4 驱动的本地透明桌宠：支持长按抱起、甩飞、重力落地、贴边偷看、主动行为、小游戏和 Linux/X11 截图贴图。
+Godot 4 驱动的本地透明桌宠：支持长按抱起、甩飞、重力落地、贴边偷看、主动行为、小游戏和跨平台截图贴图。
 
 <p>
   <a href="https://github.com/MzKyle/Crayon-Shinchan-Desktop-Pat"><img alt="GitHub repo" src="https://img.shields.io/badge/GitHub-MzKyle%2FCrayon--Shinchan--Desktop--Pat-181717?logo=github" /></a>
   <img alt="Godot" src="https://img.shields.io/badge/Godot-4.6-478CBF?logo=godot-engine&logoColor=white" />
-  <img alt="Platform" src="https://img.shields.io/badge/platform-Linux%20desktop-22c55e" />
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-22c55e" />
   <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-blue" />
 </p>
@@ -23,7 +23,7 @@ Godot 4 驱动的本地透明桌宠：支持长按抱起、甩飞、重力落地
 - 拖到屏幕边缘释放后进入贴边偷看，点击或拖拽即可唤回
 - 安静、活泼、捣乱三种行为模式，默认安静启动
 - 右键菜单支持散步、投喂、睡觉、唤醒、接球挑战、显示大小、重力开关和退出
-- Linux/X11 截图贴图：`F1` 区域截图、`F3` 轮换贴图、`F4` 关闭当前贴图
+- 跨平台截图贴图：`F1` 区域截图并复制图片、`F3` 轮换贴图、`F4` 关闭当前贴图
 - 心情、饥饿、体力、亲密度本地持久化
 - `resource_hd/` 高清资源优先加载，缺失时回退到 `resource/`
 - portable Godot runtime bundle 打包，也支持安装 export templates 后走 Godot export
@@ -41,11 +41,11 @@ flowchart LR
   Main --> Pins["ScreenshotPins.gd<br/>截图贴图"]
   Sprite --> Manifest["actions.json"]
   Manifest --> Frames["resource_hd / resource"]
-  Pins --> Hotkeys["pet_hotkeys_x11.py<br/>X11 全局快捷键"]
+  Pins --> Hotkeys["pet_helper<br/>全局快捷键 / 图片剪贴板"]
   Pins --> Config["~/.config/crayon-shinchan-desktop-pet"]
 ```
 
-核心链路是：`Main.gd` 编排 Godot 窗口、动画、物理、输入和菜单；`PetPhysics.gd` 计算窗口坐标；`PetSprite.gd` 加载动作帧；截图贴图模块通过 Godot 子窗口和 X11 快捷键辅助脚本扩展桌面能力。
+核心链路是：`Main.gd` 编排 Godot 窗口、动画、物理、输入和菜单；`PetPhysics.gd` 计算窗口坐标；`PetSprite.gd` 加载动作帧；截图贴图模块通过 Godot 子窗口和跨平台 helper 扩展桌面能力。
 
 ## 技术栈
 
@@ -53,8 +53,8 @@ flowchart LR
 | --- | --- | --- |
 | 桌面运行时 | Godot 4.6 | 透明窗口、2D 渲染、输入事件、子窗口 |
 | 主逻辑 | GDScript | 桌宠状态、物理、行为、小游戏、截图贴图 |
-| 工具脚本 | Python 3 / Bash | 资源生成、Godot 准备、X11 快捷键桥接、打包 |
-| 截图后端 | KDE Spectacle / ImageMagick `import` | Linux 区域截图 |
+| 工具脚本 | Python 3 / Bash | 资源生成、Godot 准备、跨平台 helper、打包 |
+| 截图后端 | Godot `DisplayServer` / 平台剪贴板 helper | 区域截图、图片剪贴板和旧 Linux 工具兜底 |
 | 文档 | docsify / Mermaid | 文档站、架构图和模块说明 |
 
 ## 项目结构
@@ -69,23 +69,24 @@ flowchart LR
 ├── resource/              # 原始动作帧
 ├── resource_hd/           # 高清动作帧
 ├── assets/                # 特效、小游戏、偷看和素材来源说明
-├── scripts/               # 启动、生成、打包和 X11 快捷键脚本
+├── scripts/               # 启动、生成、打包和跨平台 helper 脚本
 ├── packaging/             # Linux desktop entry 模板
 └── requirements.txt
 ```
 
 ## 环境要求
 
-- Linux 桌面环境
+- Windows、macOS 或 Linux 桌面环境
 - Godot 4.6.x，或让 `scripts/setup_godot.sh` 自动下载 portable 版本
 - Python 3.10+
-- 可选：KDE Spectacle 或 ImageMagick，用于截图贴图
+- Linux 可选：`wl-copy` 或 `xclip`，用于把截图复制到图片剪贴板
+- Linux 可选：KDE Spectacle 或 ImageMagick，用于 Godot 截图不可用时兜底
 - 可选：Godot export templates，用于正式 export
 
 ## 快速开始
 
 ```bash
-python3 -m pip install -r requirements.txt
+python3 scripts/setup_dev_environment.py
 scripts/setup_godot.sh
 python3 scripts/generate_godot_manifest.py
 scripts/run_godot_pet.sh
@@ -103,6 +104,7 @@ CRAYON_PET_SAFE_WINDOW=1 scripts/run_godot_pet.sh
 python3 scripts/generate_godot_manifest.py
 python3 scripts/generate_hd_assets.py --source resource --output resource_hd --scale 3 --force
 scripts/run_godot_pet.sh
+python3 scripts/build_portable.py --target linux
 scripts/build_godot_linux.sh
 scripts/install_desktop_entry.sh
 ```
@@ -130,13 +132,23 @@ scripts/install_desktop_entry.sh
 
 ## 打包发布
 
-默认 portable bundle：
+跨平台 portable zip：
+
+```bash
+python3 scripts/build_portable.py --target linux
+python3 scripts/build_portable.py --target windows
+python3 scripts/build_portable.py --target macos
+```
+
+本地通常只构建当前系统对应的 target；三平台产物由 GitHub Actions 在对应 runner 上构建。
+
+Linux runtime bundle：
 
 ```bash
 scripts/build_godot_linux.sh
 ```
 
-产物位于：
+Linux runtime 产物位于：
 
 ```text
 dist/GodotShinchanPet/CrayonShinchanGodotPet
@@ -201,7 +213,7 @@ CRAYON_PET_SAFE_WINDOW=1 scripts/run_godot_pet.sh
 
 ### 全局快捷键不生效怎么办？
 
-全局快捷键目前主要支持 Linux/X11。Wayland 下会保留应用内快捷键兜底。也可以显式关闭全局快捷键：
+全局快捷键由 `scripts/pet_helper.py` 或打包后的 `scripts/pet_helper` 提供。Linux Wayland 下默认保留应用内快捷键兜底；macOS 首次使用可能需要在系统设置里授予辅助功能权限。也可以显式关闭全局快捷键：
 
 ```bash
 CRAYON_PET_ENABLE_GLOBAL_HOTKEYS=0 scripts/run_godot_pet.sh

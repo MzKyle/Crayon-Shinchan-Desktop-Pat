@@ -60,19 +60,19 @@ python3 scripts/generate_godot_manifest.py
 
 ## 全局快捷键不生效
 
-先确认当前会话：
+Linux 下先确认当前会话：
 
 ```bash
 echo "$XDG_SESSION_TYPE"
 ```
 
-全局快捷键仅支持 Linux/X11。Wayland 下默认不启用。
+Wayland 下默认不启用全局快捷键。Windows/macOS 下由 `pynput` helper 监听，macOS 可能需要授予辅助功能权限。
 
 再确认依赖：
 
 ```bash
 python3 --version
-python3 scripts/pet_hotkeys_x11.py --help
+python3 scripts/pet_helper.py hotkeys --help
 ```
 
 如果只想禁用全局快捷键：
@@ -83,32 +83,32 @@ CRAYON_PET_ENABLE_GLOBAL_HOTKEYS=0 scripts/run_godot_pet.sh
 
 ## `F1` 截图失败
 
-安装至少一个截图后端：
+截图默认使用 Godot 内置截图。Linux 如果截图能保存但没有复制到剪贴板，安装剪贴板工具：
 
 ```bash
-sudo apt-get install -y imagemagick
+sudo apt-get install -y wl-clipboard xclip
 ```
 
-KDE 推荐：
+如果 Godot 截图不可用，Linux 可安装旧截图兜底工具：
 
 ```bash
-sudo apt-get install -y kde-spectacle
+sudo apt-get install -y kde-spectacle imagemagick
 ```
-
-也可以在“截图贴图设置”中手动选择 `spectacle` 或 `import`。
 
 ## 打包后截图贴图全局快捷键失效
 
 确认打包目录中存在：
 
 ```text
-dist/GodotShinchanPet/scripts/pet_hotkeys_x11.py
+dist/GodotShinchanPet/scripts/pet_helper.py
+dist/GodotShinchanPet/scripts/pet_helper
 ```
 
 并且可执行：
 
 ```bash
-chmod +x dist/GodotShinchanPet/scripts/pet_hotkeys_x11.py
+chmod +x dist/GodotShinchanPet/scripts/pet_helper.py
+chmod +x dist/GodotShinchanPet/scripts/pet_helper
 ```
 
 当前构建脚本会自动复制并设置权限。

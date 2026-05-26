@@ -52,8 +52,8 @@
 
 - 读取和保存截图贴图配置
 - 维护最近截图历史和贴图窗口列表
-- 调用截图后端
-- 启动和停止 X11 快捷键辅助进程
+- 调用 Godot 截图和剪贴板 helper
+- 启动和停止跨平台快捷键辅助进程
 - 通过 UDP 接收全局快捷键命令
 
 这个模块会创建 `PinImageWindow.gd` 和 `ScreenshotSettingsWindow.gd`，并通过 `notify` 信号让主窗口显示气泡提示。

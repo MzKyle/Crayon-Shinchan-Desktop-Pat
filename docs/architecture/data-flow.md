@@ -59,9 +59,9 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-  participant Hotkey as pet_hotkeys_x11.py
+  participant Hotkey as pet_helper
   participant Pins as ScreenshotPins.gd
-  participant Tool as spectacle/import
+  participant Tool as Godot screenshot / clipboard helper
   participant Config as ~/.config
   participant Pin as PinImageWindow.gd
 

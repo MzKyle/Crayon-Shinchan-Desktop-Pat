@@ -35,8 +35,29 @@ copy_external_assets() {
   fi
 
   mkdir -p "$DIST_DIR/scripts"
-  cp "$ROOT_DIR/scripts/pet_hotkeys_x11.py" "$DIST_DIR/scripts/pet_hotkeys_x11.py"
-  chmod +x "$DIST_DIR/scripts/pet_hotkeys_x11.py"
+  cp "$ROOT_DIR/scripts/pet_helper.py" "$DIST_DIR/scripts/pet_helper.py"
+  chmod +x "$DIST_DIR/scripts/pet_helper.py"
+  if [[ ! -x "$ROOT_DIR/build/helper/pet_helper" ]]; then
+    if command -v pyinstaller >/dev/null 2>&1; then
+      pyinstaller --onefile --clean --name pet_helper \
+        --distpath "$ROOT_DIR/build/helper" \
+        --workpath "$ROOT_DIR/build/pyinstaller" \
+        --specpath "$ROOT_DIR/build/spec" \
+        "$ROOT_DIR/scripts/pet_helper.py"
+    elif [[ -x "$ROOT_DIR/.venv/bin/pyinstaller" ]]; then
+      "$ROOT_DIR/.venv/bin/pyinstaller" --onefile --clean --name pet_helper \
+        --distpath "$ROOT_DIR/build/helper" \
+        --workpath "$ROOT_DIR/build/pyinstaller" \
+        --specpath "$ROOT_DIR/build/spec" \
+        "$ROOT_DIR/scripts/pet_helper.py"
+    fi
+  fi
+  if [[ -x "$ROOT_DIR/build/helper/pet_helper" ]]; then
+    cp "$ROOT_DIR/build/helper/pet_helper" "$DIST_DIR/scripts/pet_helper"
+    chmod +x "$DIST_DIR/scripts/pet_helper"
+  else
+    echo "pet_helper binary was not built; development bundle will use pet_helper.py if Python is available." >&2
+  fi
 }
 
 if [[ "$USE_EXPORT" == "1" ]]; then

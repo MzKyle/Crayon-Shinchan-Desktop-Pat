@@ -22,7 +22,7 @@ godot_pet/scripts/Main.gd
 | 改投喂或接球小游戏 | `MiniGames.gd` |
 | 改心情等状态 | `StateStore.gd` |
 | 改截图贴图 | `ScreenshotPins.gd`、`PinImageWindow.gd`、`ScreenshotSettingsWindow.gd` |
-| 改 X11 全局快捷键 | `scripts/pet_hotkeys_x11.py` |
+| 改全局快捷键或图片剪贴板 | `scripts/pet_helper.py` |
 | 改资源动作 | `scripts/generate_godot_manifest.py` |
 | 改打包 | `scripts/build_godot_linux.sh` |
 

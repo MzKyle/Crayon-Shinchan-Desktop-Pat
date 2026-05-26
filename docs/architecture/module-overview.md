@@ -11,7 +11,7 @@
 | `BehaviorBrain.gd` | 安静/活泼/捣乱模式调度 | 当前模式、暂停状态 | 自动行为请求 |
 | `MiniGames.gd` | 饭团投喂和接球挑战 | 鼠标拖拽、角色碰撞区域 | 成功信号和游戏结束信号 |
 | `StateStore.gd` | 心情、饥饿、体力、亲密度持久化 | 行为增量 | `state.json` |
-| `ScreenshotPins.gd` | 截图、贴图、快捷键、配置、历史 | 快捷键、截图后端、剪贴板 | 贴图窗口、配置文件、截图历史 |
+| `ScreenshotPins.gd` | 截图、贴图、快捷键、配置、历史 | 快捷键、Godot 截图、剪贴板 helper | 贴图窗口、配置文件、截图历史 |
 | `PinImageWindow.gd` | 单张贴图窗口 | 图片、起始位置、最大尺寸 | 置顶可拖动贴图 |
 | `ScreenshotSettingsWindow.gd` | 截图贴图设置 UI | 当前配置 | 保存后的配置 |
 
@@ -28,7 +28,7 @@
 | `scripts/download_effect_assets.sh` | 下载 Noto Emoji 互动素材 |
 | `scripts/build_godot_linux.sh` | 打包 portable bundle 或 Godot export |
 | `scripts/install_desktop_entry.sh` | 安装 Linux 桌面启动器 |
-| `scripts/pet_hotkeys_x11.py` | X11 全局快捷键桥接 |
+| `scripts/pet_helper.py` | 全局快捷键和图片剪贴板桥接 |
 
 ## 模块通信方式
 

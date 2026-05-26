@@ -41,8 +41,8 @@ CRAYON_PET_MOUSE_PASSTHROUGH=0 scripts/run_godot_pet.sh
 
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
-| `CRAYON_PET_ENABLE_GLOBAL_HOTKEYS` | `1` | 是否启动 X11 全局快捷键辅助进程 |
-| `PYTHON` | 自动查找 | 指定用于启动 `pet_hotkeys_x11.py` 的 Python |
+| `CRAYON_PET_ENABLE_GLOBAL_HOTKEYS` | `1` | 是否启动跨平台全局快捷键辅助进程 |
+| `PYTHON` | 自动查找 | 开发模式下指定用于启动 `pet_helper.py` 的 Python |
 
 关闭全局快捷键：
 

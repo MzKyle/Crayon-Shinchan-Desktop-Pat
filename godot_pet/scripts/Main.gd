@@ -977,6 +977,8 @@ func _resolve_repo_root() -> String:
 		ProjectSettings.globalize_path("res://..").simplify_path(),
 		OS.get_executable_path().get_base_dir().simplify_path(),
 		OS.get_executable_path().get_base_dir().path_join("..").simplify_path(),
+		OS.get_executable_path().get_base_dir().path_join("..").path_join("..").simplify_path(),
+		OS.get_executable_path().get_base_dir().path_join("..").path_join("..").path_join("..").simplify_path(),
 	]
 	for candidate in candidates:
 		if DirAccess.dir_exists_absolute(candidate.path_join("resource")):

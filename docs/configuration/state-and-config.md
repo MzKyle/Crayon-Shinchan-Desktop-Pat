@@ -40,10 +40,12 @@
 | `shortcuts.screenshot` | 截图快捷键 |
 | `shortcuts.paste_pin` | 贴图快捷键 |
 | `shortcuts.close_pin` | 关闭贴图快捷键 |
-| `screenshot.backend` | `auto`、`spectacle` 或 `import` |
+| `screenshot.backend` | 内部保留字段，启动时重置为 `auto` |
 | `pins.max_count` | 最大贴图数量，范围 1-3 |
 
 右键菜单中的“截图贴图设置”会写入这个文件。
+
+截图现在默认使用 Godot 内置截图，Linux 上仅在 Godot 截图不可用时自动兜底到 Spectacle 或 ImageMagick。旧配置里的 `spectacle` / `import` 偏好不会保留。
 
 ## 截图历史
 

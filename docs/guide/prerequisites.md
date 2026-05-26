@@ -6,9 +6,9 @@
 
 | 依赖 | 推荐版本 | 说明 |
 | --- | --- | --- |
-| Linux | Ubuntu / Debian / Arch / Fedora 均可 | 项目主要面向 Linux 桌面环境 |
+| Windows / macOS / Linux | 当前桌面系统 | 跨平台截图贴图和 portable zip 打包 |
 | Godot | 4.6.x | `scripts/setup_godot.sh` 可自动寻找或下载 portable 版本 |
-| Python | 3.10+ | 资源处理脚本和 X11 全局快捷键桥接 |
+| Python | 3.10+ | 资源处理脚本、开发模式 helper 和打包 |
 | Bash | 系统自带 | 运行、打包、安装 desktop entry |
 | pip | 最新稳定版 | 安装图片处理依赖 |
 
@@ -18,7 +18,7 @@
 python3 -m pip install -r requirements.txt
 ```
 
-`requirements.txt` 目前主要用于资源生成和图片处理。运行 Godot 桌宠本体不依赖 Python GUI 框架。
+`requirements.txt` 用于资源生成、开发模式 helper 和打包。正式 portable zip 会内置 helper 可执行文件。
 
 ## Godot 准备
 
@@ -45,20 +45,20 @@ GODOT_VERSION=4.6.3-stable scripts/setup_godot.sh
 
 透明窗口、置顶窗口和鼠标穿透由 Godot / 桌面环境共同支持。X11 通常兼容性更好；Wayland 会因合成器策略不同而出现差异。
 
-截图贴图需要至少一个截图后端：
+截图贴图默认使用 Godot 内置截图。Linux 如果需要复制图片到剪贴板，建议安装 `wl-copy` 或 `xclip`：
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y python3 python3-pip imagemagick
+sudo apt-get install -y python3 python3-pip wl-clipboard xclip
 ```
 
-KDE 环境推荐安装 Spectacle：
+Linux 上 Godot 截图不可用时仍会自动尝试 Spectacle 或 ImageMagick：
 
 ```bash
-sudo apt-get install -y kde-spectacle
+sudo apt-get install -y kde-spectacle imagemagick
 ```
 
-全局快捷键在 Linux/X11 下由 `scripts/pet_hotkeys_x11.py` 通过 `libX11` 注册。Wayland 下默认不启用全局快捷键，但应用窗口聚焦时仍保留应用内快捷键。
+全局快捷键由 `scripts/pet_helper.py` 提供。Linux/X11 使用 `libX11`，Windows/macOS 使用 `pynput`；Wayland 下默认不启用全局快捷键，但应用窗口聚焦时仍保留应用内快捷键。
 
 ## 可选打包依赖
 

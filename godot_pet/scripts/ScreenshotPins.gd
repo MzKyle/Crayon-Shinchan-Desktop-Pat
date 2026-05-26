@@ -4,6 +4,7 @@ signal notify(text)
 
 const PinImageWindowScript = preload("res://scripts/PinImageWindow.gd")
 const SettingsWindowScript = preload("res://scripts/ScreenshotSettingsWindow.gd")
+const SelectionWindowScript = preload("res://scripts/ScreenshotSelectionWindow.gd")
 
 const CONFIG_DIR_NAME := "crayon-shinchan-desktop-pet"
 const HOTKEY_PORT := 38291
@@ -93,14 +94,17 @@ func take_screenshot() -> void:
 	DirAccess.make_dir_recursive_absolute(screenshot_dir)
 	var hidden_windows = _hide_windows_for_screenshot()
 	await get_tree().create_timer(0.16).timeout
-	var ok = _run_screenshot_command(output_path)
+	var result = await _run_screenshot_flow(output_path)
 	_restore_windows_after_screenshot(hidden_windows)
 	screenshot_active = false
-	if ok and FileAccess.file_exists(output_path):
+	if bool(result.get("saved", false)) and FileAccess.file_exists(output_path):
 		_add_history(output_path)
-		emit_signal("notify", "截图已复制到剪贴板。")
+		if bool(result.get("copied", false)):
+			emit_signal("notify", "截图已保存并复制到剪贴板。")
+		else:
+			emit_signal("notify", "截图已保存；复制到剪贴板失败。")
 	else:
-		emit_signal("notify", "截图取消或失败。")
+		emit_signal("notify", str(result.get("message", "截图取消或失败。")))
 
 
 func paste_next_pin() -> void:
@@ -191,16 +195,8 @@ func _poll_udp() -> void:
 func _start_hotkey_helper() -> void:
 	if not _global_hotkeys_enabled():
 		return
-	var helper_path = _hotkey_helper_path()
-	if helper_path == "":
-		emit_signal("notify", "未找到全局快捷键辅助脚本。")
-		return
-	var python_path = _find_python()
-	if python_path == "":
-		emit_signal("notify", "未找到 python3，保留应用内快捷键。")
-		return
-	var args = PackedStringArray([
-		helper_path,
+	var command = _helper_command(PackedStringArray([
+		"hotkeys",
 		"--port",
 		str(HOTKEY_PORT),
 		"--screenshot",
@@ -209,8 +205,12 @@ func _start_hotkey_helper() -> void:
 		str(config["shortcuts"].get("paste_pin", "F3")),
 		"--close-pin",
 		str(config["shortcuts"].get("close_pin", "F4")),
-	])
-	hotkey_pid = OS.create_process(python_path, args, false)
+	]))
+	if command.is_empty():
+		emit_signal("notify", "未找到跨平台辅助程序，保留应用内快捷键。")
+		return
+	var args: PackedStringArray = command["args"]
+	hotkey_pid = OS.create_process(str(command["program"]), args, false)
 	if hotkey_pid <= 0:
 		emit_signal("notify", "全局快捷键启动失败，保留应用内快捷键。")
 
@@ -227,21 +227,104 @@ func _restart_hotkey_helper() -> void:
 
 
 func _global_hotkeys_enabled() -> bool:
-	if OS.get_name() != "Linux":
-		emit_signal("notify", "全局快捷键仅支持 Linux/X11。")
-		return false
 	if OS.get_environment("CRAYON_PET_ENABLE_GLOBAL_HOTKEYS").strip_edges() in ["0", "false", "False"]:
 		return false
-	var session = OS.get_environment("XDG_SESSION_TYPE").to_lower()
-	var display = OS.get_environment("DISPLAY")
-	var wayland = OS.get_environment("WAYLAND_DISPLAY")
-	if display == "" or (session == "wayland" and wayland != ""):
-		emit_signal("notify", "Wayland 下暂不启用全局快捷键。")
+	if OS.get_name() == "Linux":
+		var session = OS.get_environment("XDG_SESSION_TYPE").to_lower()
+		var display = OS.get_environment("DISPLAY")
+		var wayland = OS.get_environment("WAYLAND_DISPLAY")
+		if display == "" or (session == "wayland" and wayland != ""):
+			emit_signal("notify", "Wayland 下暂不启用全局快捷键。")
+			return false
+	if OS.get_name() == "Web":
 		return false
+	if OS.get_name() == "macOS" and OS.get_environment("CRAYON_PET_ENABLE_GLOBAL_HOTKEYS").strip_edges() == "":
+		emit_signal("notify", "macOS 首次使用全局快捷键可能需要授予辅助功能权限。")
 	return true
 
 
-func _run_screenshot_command(output_path: String) -> bool:
+func _run_screenshot_flow(output_path: String) -> Dictionary:
+	var backend = str(config["screenshot"].get("backend", "auto"))
+	if backend in ["auto", "godot"]:
+		var godot_result = await _run_godot_screenshot(output_path)
+		if bool(godot_result.get("saved", false)) or backend == "godot" or not bool(godot_result.get("fallback", false)):
+			return godot_result
+	if backend in ["auto", "spectacle", "import"]:
+		return _run_legacy_screenshot_command(output_path)
+	return {
+		"saved": false,
+		"copied": false,
+		"message": "截图后端配置不可用。"
+	}
+
+
+func _run_godot_screenshot(output_path: String) -> Dictionary:
+	var screen = _mouse_screen()
+	var image = DisplayServer.screen_get_image(screen)
+	if image == null or image.get_width() <= 0 or image.get_height() <= 0:
+		return {
+			"saved": false,
+			"copied": false,
+			"fallback": true,
+			"message": "Godot 截图不可用，正在尝试系统截图工具。"
+		}
+
+	var screen_rect = Rect2i(
+		DisplayServer.screen_get_position(screen),
+		DisplayServer.screen_get_size(screen)
+	)
+	var crop = await _select_screenshot_region(image, screen_rect)
+	if crop == null:
+		return {
+			"saved": false,
+			"copied": false,
+			"fallback": false,
+			"message": "截图已取消。"
+		}
+	if crop.save_png(output_path) != OK:
+		return {
+			"saved": false,
+			"copied": false,
+			"fallback": false,
+			"message": "截图保存失败。"
+		}
+	return {
+		"saved": true,
+		"copied": _copy_image_to_clipboard(output_path),
+		"fallback": false,
+		"message": ""
+	}
+
+
+func _select_screenshot_region(image: Image, screen_rect: Rect2i):
+	var selector = SelectionWindowScript.new()
+	add_child(selector)
+	selector.open_with_capture(image, screen_rect)
+	var result = await selector.selection_finished
+	if is_instance_valid(selector):
+		selector.queue_free()
+	if result.size() < 2 or not bool(result[0]):
+		return null
+	return result[1]
+
+
+func _mouse_screen() -> int:
+	var mouse = DisplayServer.mouse_get_position()
+	var screen = DisplayServer.get_screen_from_rect(Rect2i(mouse, Vector2i(1, 1)))
+	if screen < 0:
+		screen = DisplayServer.window_get_current_screen()
+	if screen < 0:
+		screen = DisplayServer.get_primary_screen()
+	return screen
+
+
+func _run_legacy_screenshot_command(output_path: String) -> Dictionary:
+	if OS.get_name() != "Linux":
+		return {
+			"saved": false,
+			"copied": false,
+			"message": "当前平台不支持旧截图工具。"
+		}
 	var backend = str(config["screenshot"].get("backend", "auto"))
 	var spectacle_path = _command_path("spectacle")
 	if backend in ["auto", "spectacle"] and spectacle_path != "":
@@ -253,15 +336,34 @@ func _run_screenshot_command(output_path: String) -> bool:
 			"--output",
 			output_path,
 		]), [], true)
-		return code == 0
+		return {
+			"saved": code == 0,
+			"copied": code == 0,
+			"message": "" if code == 0 else "Spectacle 截图取消或失败。"
+		}
 	var import_path = _command_path("import")
 	if backend in ["auto", "import"] and import_path != "":
 		var code = OS.execute(import_path, PackedStringArray([output_path]), [], true)
-		if code == 0:
-			emit_signal("notify", "截图已保存；未复制到剪贴板。")
-		return code == 0
-	emit_signal("notify", "未找到可用截图工具。")
-	return false
+		return {
+			"saved": code == 0,
+			"copied": code == 0 and _copy_image_to_clipboard(output_path),
+			"message": "" if code == 0 else "ImageMagick 截图取消或失败。"
+		}
+	return {
+		"saved": false,
+		"copied": false,
+		"message": "未找到可用截图工具。"
+	}
+
+
+func _copy_image_to_clipboard(path: String) -> bool:
+	var command = _helper_command(PackedStringArray(["copy-image", path]))
+	if command.is_empty():
+		return false
+	var output := []
+	var args: PackedStringArray = command["args"]
+	var code = OS.execute(str(command["program"]), args, output, true)
+	return code == 0
 
 
 func _paste_clipboard_image() -> bool:
@@ -390,10 +492,6 @@ func _merged_config(source: Dictionary) -> Dictionary:
 		for key in merged["shortcuts"].keys():
 			if source["shortcuts"].has(key):
 				merged["shortcuts"][key] = str(source["shortcuts"][key])
-	if source.has("screenshot") and typeof(source["screenshot"]) == TYPE_DICTIONARY:
-		if source["screenshot"].has("backend"):
-			var backend = str(source["screenshot"]["backend"])
-			merged["screenshot"]["backend"] = backend if backend in ["auto", "spectacle", "import"] else "auto"
 	if source.has("pins") and typeof(source["pins"]) == TYPE_DICTIONARY:
 		if source["pins"].has("max_count"):
 			merged["pins"]["max_count"] = clampi(int(source["pins"]["max_count"]), 1, 3)
@@ -438,17 +536,57 @@ func _screenshot_file_name(prefix := "screenshot") -> String:
 
 
 func _config_dir() -> String:
+	if OS.get_name() in ["Windows", "macOS"]:
+		return ProjectSettings.globalize_path("user://")
 	var home = OS.get_environment("HOME")
 	if home == "":
 		return ProjectSettings.globalize_path("user://")
 	return home.path_join(".config").path_join(CONFIG_DIR_NAME)
 
 
-func _hotkey_helper_path() -> String:
+func _helper_command(args: PackedStringArray) -> Dictionary:
+	var executable = _helper_executable_path()
+	if executable != "":
+		return {
+			"program": executable,
+			"args": args,
+		}
+	var script_path = _helper_script_path()
+	var python_path = _find_python()
+	if script_path != "" and python_path != "":
+		var script_args = PackedStringArray([script_path])
+		script_args.append_array(args)
+		return {
+			"program": python_path,
+			"args": script_args,
+		}
+	return {}
+
+
+func _helper_executable_path() -> String:
+	var exe_name = "pet_helper.exe" if OS.get_name() == "Windows" else "pet_helper"
 	var candidates = [
-		repo_root.path_join("scripts").path_join("pet_hotkeys_x11.py"),
-		ProjectSettings.globalize_path("res://..").path_join("scripts").path_join("pet_hotkeys_x11.py"),
-		OS.get_executable_path().get_base_dir().path_join("scripts").path_join("pet_hotkeys_x11.py"),
+		repo_root.path_join("scripts").path_join(exe_name),
+		ProjectSettings.globalize_path("res://..").path_join("scripts").path_join(exe_name),
+		OS.get_executable_path().get_base_dir().path_join("scripts").path_join(exe_name),
+		OS.get_executable_path().get_base_dir().path_join("..").path_join("scripts").path_join(exe_name).simplify_path(),
+		OS.get_executable_path().get_base_dir().path_join("..").path_join("..").path_join("scripts").path_join(exe_name).simplify_path(),
+		OS.get_executable_path().get_base_dir().path_join("..").path_join("..").path_join("..").path_join("scripts").path_join(exe_name).simplify_path(),
+	]
+	for path in candidates:
+		if FileAccess.file_exists(path):
+			return path
+	return ""
+
+
+func _helper_script_path() -> String:
+	var candidates = [
+		repo_root.path_join("scripts").path_join("pet_helper.py"),
+		ProjectSettings.globalize_path("res://..").path_join("scripts").path_join("pet_helper.py"),
+		OS.get_executable_path().get_base_dir().path_join("scripts").path_join("pet_helper.py"),
+		OS.get_executable_path().get_base_dir().path_join("..").path_join("scripts").path_join("pet_helper.py").simplify_path(),
+		OS.get_executable_path().get_base_dir().path_join("..").path_join("..").path_join("scripts").path_join("pet_helper.py").simplify_path(),
+		OS.get_executable_path().get_base_dir().path_join("..").path_join("..").path_join("..").path_join("scripts").path_join("pet_helper.py").simplify_path(),
 	]
 	for path in candidates:
 		if FileAccess.file_exists(path):
@@ -466,17 +604,16 @@ func _find_python() -> String:
 	return _command_path("python")
 
 
-func _command_exists(command: String) -> bool:
-	var code = OS.execute("bash", PackedStringArray(["-lc", "command -v %s >/dev/null 2>&1" % command]), [], true)
-	return code == 0
-
-
 func _command_path(command: String) -> String:
 	var output := []
-	var code = OS.execute("bash", PackedStringArray(["-lc", "command -v %s" % command]), output, true)
+	var code = 1
+	if OS.get_name() == "Windows":
+		code = OS.execute("cmd", PackedStringArray(["/C", "where", command]), output, true)
+	else:
+		code = OS.execute("sh", PackedStringArray(["-lc", "command -v %s" % command]), output, true)
 	if code != 0 or output.is_empty():
 		return ""
-	return str(output[0]).strip_edges()
+	return str(output[0]).strip_edges().split("\n")[0].strip_edges()
 
 
 func _shortcut_from_event(event: InputEventKey) -> String:
