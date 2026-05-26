@@ -10,7 +10,7 @@ import numpy as np
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate alpha-safe high resolution pet assets.")
-    parser.add_argument("--source", type=Path, default=Path("resource"))
+    parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("resource_hd"))
     parser.add_argument("--scale", type=int, default=3)
     parser.add_argument("--limit", type=int, default=0, help="Only process this many files, for smoke tests.")
@@ -21,6 +21,8 @@ def main() -> int:
         raise SystemExit("--scale must be 2 or greater")
     if not args.source.is_dir():
         raise SystemExit(f"Source directory does not exist: {args.source}")
+    if args.source.resolve() == args.output.resolve():
+        raise SystemExit("--source and --output must be different directories")
 
     files = sorted(args.source.rglob("*.png"))
     if args.limit:

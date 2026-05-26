@@ -23,7 +23,7 @@ flowchart TB
   Pins --> Hotkeys["pet_helper"]
 
   Sprite --> Manifest["actions.json"]
-  Manifest --> Frames["resource_hd / resource"]
+  Manifest --> Frames["resource_hd"]
   Games --> GameAssets["assets/games"]
   Main --> EffectAssets["assets/effects"]
   State --> UserState["state.json"]
@@ -37,7 +37,7 @@ flowchart TB
 - Godot 内只保留桌宠运行逻辑，不把素材处理逻辑塞进 GDScript。
 - Python 脚本只做离线生成或系统桥接，不承担桌宠 UI 主逻辑。
 - 状态文件写入用户配置目录，不污染仓库。
-- 运行时优先使用 `resource_hd/`，缺失时回退到 `resource/`，方便兼顾质量和仓库兼容性。
+- 运行时动作帧统一放在 `resource_hd/`，避免维护两份同名资源。
 - Linux 打包先保证 portable bundle 可用，再提供 Godot export 的可选路径。
 
 ## 关键约束

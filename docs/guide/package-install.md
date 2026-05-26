@@ -82,7 +82,7 @@ scripts/install_desktop_entry.sh
 ~/.local/share/icons/hicolor/256x256/apps/crayon-shinchan-desktop-pet.png
 ```
 
-图标会优先从 `resource_hd/xianzhi/` 或 `resource/xianzhi/` 里取第一张 PNG。
+图标会从 `resource_hd/xianzhi/` 里取第一张 PNG。
 
 ## 打包内容
 
@@ -93,7 +93,6 @@ portable bundle 主要包含：
 | `GodotPetRuntime` | Godot runtime 可执行文件 |
 | `CrayonShinchanGodotPet` | 启动脚本，设置环境变量并启动项目 |
 | `godot_pet/` | Godot 项目 |
-| `resource/` | 原始动作帧 |
 | `resource_hd/` | 高清动作帧 |
 | `assets/` | 特效、小游戏和偷看素材 |
 | `scripts/pet_helper` | 全局快捷键和图片剪贴板辅助程序 |

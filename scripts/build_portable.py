@@ -103,7 +103,7 @@ def build_helper() -> Path:
 
 
 def copy_external_assets(package_dir: Path, helper_path: Path) -> None:
-    for name in ("resource", "resource_hd", "assets"):
+    for name in ("resource_hd", "assets"):
         source = ROOT / name
         if source.exists():
             shutil.copytree(source, package_dir / name, dirs_exist_ok=True)

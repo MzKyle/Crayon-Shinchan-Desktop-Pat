@@ -969,9 +969,13 @@ func _load_json(path: String) -> Dictionary:
 	return {}
 
 
+func _has_resource_root(path: String) -> bool:
+	return DirAccess.dir_exists_absolute(path.path_join("resource_hd"))
+
+
 func _resolve_repo_root() -> String:
 	var env = OS.get_environment("CRAYON_PET_ROOT")
-	if env != "" and DirAccess.dir_exists_absolute(env.path_join("resource")):
+	if env != "" and _has_resource_root(env):
 		return env
 	var candidates = [
 		ProjectSettings.globalize_path("res://..").simplify_path(),
@@ -981,7 +985,7 @@ func _resolve_repo_root() -> String:
 		OS.get_executable_path().get_base_dir().path_join("..").path_join("..").path_join("..").simplify_path(),
 	]
 	for candidate in candidates:
-		if DirAccess.dir_exists_absolute(candidate.path_join("resource")):
+		if _has_resource_root(candidate):
 			return candidate
 	return ProjectSettings.globalize_path("res://..").simplify_path()
 

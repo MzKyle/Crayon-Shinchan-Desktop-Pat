@@ -9,7 +9,7 @@ from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_DIR = ROOT / "resource" / "mischief_grab"
+OUT_DIR = ROOT / "resource_hd" / "mischief_grab"
 CANVAS = (260, 220)
 TARGET_HEIGHT = 188
 MAX_WIDTH = 232

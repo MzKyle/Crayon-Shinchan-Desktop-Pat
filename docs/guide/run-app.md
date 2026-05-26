@@ -10,7 +10,7 @@ python3 scripts/generate_godot_manifest.py
 scripts/run_godot_pet.sh
 ```
 
-`generate_godot_manifest.py` 会扫描 `resource_hd/` 或 `resource/` 中的动作帧，并生成：
+`generate_godot_manifest.py` 会扫描 `resource_hd/` 中的动作帧，并生成：
 
 ```text
 godot_pet/assets/actions.json
@@ -69,7 +69,6 @@ CRAYON_PET_SAFE_WINDOW=1 scripts/run_godot_pet.sh
 
 ```bash
 python3 scripts/generate_godot_manifest.py
-python3 scripts/generate_hd_assets.py --source resource --output resource_hd --scale 3 --force
 scripts/run_godot_pet.sh
 scripts/build_godot_linux.sh
 scripts/install_desktop_entry.sh

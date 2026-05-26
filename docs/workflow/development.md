@@ -2,11 +2,11 @@
 
 ## 修改动作素材
 
-1. 把原始帧放入 `resource/<动作目录>/`
-2. 需要高清时运行：
+1. 把动作帧放入 `resource_hd/<动作目录>/`
+2. 需要从外部源生成高清副本时运行：
 
 ```bash
-python3 scripts/generate_hd_assets.py --source resource --output resource_hd --scale 3 --force
+python3 scripts/generate_hd_assets.py --source /path/to/source --output resource_hd --scale 3 --force
 ```
 
 3. 修改 `scripts/generate_godot_manifest.py` 中的动作定义

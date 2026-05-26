@@ -188,13 +188,9 @@ func _rotated_rect(rect: Rect2, rotation: float) -> Rect2:
 
 
 func _load_texture(relative_path: String):
-	var candidates = [
-		repo_root.path_join("resource_hd").path_join(relative_path),
-		repo_root.path_join("resource").path_join(relative_path),
-	]
-	for path in candidates:
-		if FileAccess.file_exists(path):
-			var image = Image.new()
-			if image.load(path) == OK:
-				return ImageTexture.create_from_image(image)
+	var path = repo_root.path_join("resource_hd").path_join(relative_path)
+	if FileAccess.file_exists(path):
+		var image = Image.new()
+		if image.load(path) == OK:
+			return ImageTexture.create_from_image(image)
 	return null

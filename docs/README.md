@@ -18,7 +18,7 @@
 - **行为模式** - 安静、活泼、捣乱三种模式，控制自动散步、贴边走和温和捣乱演出
 - **小游戏** - 饭团投喂、接球挑战，并影响心情、饥饿、体力和亲密度
 - **截图贴图** - Windows、macOS、Linux 下支持 `F1` 区域截图、`F3` 轮换贴图、`F4` 关闭当前贴图
-- **素材管线** - 从 `resource/` 生成 `resource_hd/`，再生成 Godot 动作清单
+- **素材管线** - 运行时动作帧统一放在 `resource_hd/`，再生成 Godot 动作清单
 - **Linux 打包** - 支持 portable Godot runtime bundle，也可安装 export templates 后走 Godot export
 
 ## 快速导航
@@ -48,7 +48,7 @@ flowchart LR
   end
 
   subgraph Assets["Repository Assets"]
-    Frames["resource / resource_hd"]
+    Frames["resource_hd"]
     Effects["assets/effects / assets/games"]
     Manifest["godot_pet/assets/actions.json"]
   end
@@ -85,8 +85,7 @@ flowchart LR
 | --- | --- |
 | `godot_pet/` | Godot 4 项目目录，主场景、脚本、导出配置和动作清单都在这里 |
 | `godot_pet/scripts/` | 桌宠核心脚本：窗口、物理、交互、行为、小游戏、状态、截图贴图 |
-| `resource/` | 原始动画帧 |
-| `resource_hd/` | 运行时优先加载的高清动画帧 |
+| `resource_hd/` | 运行时动画帧 |
 | `assets/` | 互动特效、小游戏图标、贴边偷看图和素材来源说明 |
 | `scripts/` | Godot 准备、运行、打包、素材生成、快捷键桥接等脚本 |
 | `packaging/` | Linux desktop entry 模板 |

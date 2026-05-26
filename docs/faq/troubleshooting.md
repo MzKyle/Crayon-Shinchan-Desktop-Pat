@@ -46,15 +46,13 @@ python3 scripts/generate_godot_manifest.py
 
 ```text
 resource_hd/<动作目录>/
-resource/<动作目录>/
 ```
 
 ## 高清资源没有生效
 
-运行时优先加载 `resource_hd/`。确认文件存在后重新生成清单：
+运行时从 `resource_hd/` 加载动作帧。确认文件存在后重新生成清单：
 
 ```bash
-python3 scripts/generate_hd_assets.py --source resource --output resource_hd --scale 3 --force
 python3 scripts/generate_godot_manifest.py
 ```
 

@@ -34,7 +34,7 @@ python3 scripts/generate_godot_manifest.py
 2. 清理并创建 `dist/GodotShinchanPet/`
 3. 复制 Godot runtime 为 `GodotPetRuntime`
 4. 复制 `godot_pet/`
-5. 复制 `resource/`、`resource_hd/`、`assets/`
+5. 复制 `resource_hd/` 和 `assets/`
 6. 复制 `scripts/pet_helper.py` 和可选的 `scripts/pet_helper`
 7. 写入启动脚本 `CrayonShinchanGodotPet`
 
@@ -78,7 +78,7 @@ scripts/setup_godot_export_templates.sh
 1. 生成 `godot_pet/assets/actions.json`
 2. 用 PyInstaller 构建 `pet_helper`
 3. 调用 Godot export preset 导出 Linux、Windows 或 macOS
-4. 复制 `resource/`、`resource_hd/`、`assets/` 和 helper
+4. 复制 `resource_hd/`、`assets/` 和 helper
 5. 输出 `dist/CrayonShinchanPet-<platform>.zip`
 
 GitHub Actions 工作流 `.github/workflows/package.yml` 支持手动触发，也会在推送 `v*` 标签时构建三平台 zip artifact。

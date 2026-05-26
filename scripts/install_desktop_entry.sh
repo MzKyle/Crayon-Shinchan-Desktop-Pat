@@ -8,7 +8,7 @@ ICON_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
 DESKTOP_FILE="$DESKTOP_DIR/crayon-shinchan-desktop-pet.desktop"
 ICON_NAME="crayon-shinchan-desktop-pet"
 ICON_FILE="$ICON_DIR/$ICON_NAME.png"
-ICON_SOURCE="$(find "$ROOT_DIR/resource_hd/xianzhi" "$ROOT_DIR/resource/xianzhi" -maxdepth 1 -type f -name '*.png' 2>/dev/null | sort | head -n 1)"
+ICON_SOURCE="$(find "$ROOT_DIR/resource_hd/xianzhi" -maxdepth 1 -type f -name '*.png' 2>/dev/null | sort | head -n 1)"
 
 if [[ -x "$GODOT_EXEC" ]]; then
   APP_EXEC="$GODOT_EXEC"

@@ -25,7 +25,7 @@ Godot 4 驱动的本地透明桌宠：支持长按抱起、甩飞、重力落地
 - 右键菜单支持散步、投喂、睡觉、唤醒、接球挑战、显示大小、重力开关和退出
 - 跨平台截图贴图：`F1` 区域截图并复制图片、`F3` 轮换贴图、`F4` 关闭当前贴图
 - 心情、饥饿、体力、亲密度本地持久化
-- `resource_hd/` 高清资源优先加载，缺失时回退到 `resource/`
+- `resource_hd/` 统一保存运行时动作帧，避免低清重复资源占用体积
 - portable Godot runtime bundle 打包，也支持安装 export templates 后走 Godot export
 
 ## 系统架构
@@ -40,7 +40,7 @@ flowchart LR
   Main --> State["StateStore.gd<br/>状态保存"]
   Main --> Pins["ScreenshotPins.gd<br/>截图贴图"]
   Sprite --> Manifest["actions.json"]
-  Manifest --> Frames["resource_hd / resource"]
+  Manifest --> Frames["resource_hd"]
   Pins --> Hotkeys["pet_helper<br/>全局快捷键 / 图片剪贴板"]
   Pins --> Config["~/.config/crayon-shinchan-desktop-pet"]
 ```
@@ -66,8 +66,7 @@ flowchart LR
 │   ├── assets/actions.json
 │   ├── scenes/Main.tscn
 │   └── scripts/           # 桌宠核心 GDScript
-├── resource/              # 原始动作帧
-├── resource_hd/           # 高清动作帧
+├── resource_hd/           # 运行时动作帧
 ├── assets/                # 特效、小游戏、偷看和素材来源说明
 ├── scripts/               # 启动、生成、打包和跨平台 helper 脚本
 ├── packaging/             # Linux desktop entry 模板
@@ -102,7 +101,6 @@ CRAYON_PET_SAFE_WINDOW=1 scripts/run_godot_pet.sh
 
 ```bash
 python3 scripts/generate_godot_manifest.py
-python3 scripts/generate_hd_assets.py --source resource --output resource_hd --scale 3 --force
 scripts/run_godot_pet.sh
 python3 scripts/build_portable.py --target linux
 scripts/build_godot_linux.sh

@@ -24,8 +24,6 @@ rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR"
 
 copy_external_assets() {
-  cp -a "$ROOT_DIR/resource" "$DIST_DIR/resource"
-
   if [[ -d "$ROOT_DIR/resource_hd" ]]; then
     cp -a "$ROOT_DIR/resource_hd" "$DIST_DIR/resource_hd"
   fi

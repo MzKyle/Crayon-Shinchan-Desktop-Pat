@@ -4,8 +4,7 @@
 
 | 路径 | 说明 |
 | --- | --- |
-| `resource/` | 原始动作帧 |
-| `resource_hd/` | 高清动作帧，运行时优先加载 |
+| `resource_hd/` | 运行时动作帧 |
 | `assets/effects/` | 爱心、闪光、波纹等互动特效 |
 | `assets/games/` | 饭团、球、靶心、奖杯等小游戏素材 |
 | `assets/character/` | 贴边偷看图和来源说明 |
@@ -55,20 +54,19 @@ godot_pet/assets/actions.json
 
 ## 高清资源生成
 
-生成高清副本：
+从外部源生成高清副本：
 
 ```bash
-python3 scripts/generate_hd_assets.py --source resource --output resource_hd --scale 3 --force
+python3 scripts/generate_hd_assets.py --source /path/to/source --output resource_hd --scale 3 --force
 ```
 
-运行时加载顺序：
+运行时加载路径：
 
 ```text
 resource_hd/<action_frame>
-resource/<action_frame>
 ```
 
-因此可以逐步补高清资源，不需要一次性覆盖全部原始资源。
+瘦身规则是：所有动作帧都整理到 `resource_hd/`。如果暂时只有较低清晰度的素材，也放在对应动作目录中，后续用同名高清帧替换即可。
 
 ## 贴边与捣乱素材
 

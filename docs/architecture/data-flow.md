@@ -48,12 +48,13 @@ sequenceDiagram
 
 ## 资源加载
 
-`PetSprite.gd` 不直接扫描目录。它读取 `actions.json` 中的动作定义，并按顺序尝试加载：
+`PetSprite.gd` 不直接扫描目录。它读取 `actions.json` 中的动作定义，并从统一资源目录加载：
 
-1. `resource_hd/<relative_path>`
-2. `resource/<relative_path>`
+```text
+resource_hd/<relative_path>
+```
 
-这样可以在不改 Godot 代码的情况下替换或重新生成高清帧。
+如果暂时只有较低清晰度的素材，也直接放入 `resource_hd/` 对应动作目录，后续替换同名文件即可。
 
 ## 截图贴图链路
 
