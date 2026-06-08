@@ -22,7 +22,7 @@ def natural_key(path: Path) -> list[tuple[int, int | str]]:
 
 def frames(relative_dir: str) -> list[str]:
     root = ROOT / "resource_hd" / relative_dir
-    return [str(Path(relative_dir) / path.name) for path in sorted(root.glob("*.png"), key=natural_key)]
+    return [(Path(relative_dir) / path.name).as_posix() for path in sorted(root.glob("*.png"), key=natural_key)]
 
 
 def action(
