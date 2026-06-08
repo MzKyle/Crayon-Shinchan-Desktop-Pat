@@ -220,7 +220,10 @@ func _create_nodes() -> void:
 	add_child(bubble)
 	bubble_timer = Timer.new()
 	bubble_timer.one_shot = true
-	bubble_timer.timeout.connect(func(): bubble.visible = false)
+	bubble_timer.timeout.connect(func():
+		bubble.visible = false
+		_update_mouse_passthrough()
+	)
 	add_child(bubble_timer)
 
 
@@ -729,6 +732,7 @@ func show_bubble(text: String, seconds := 1.8) -> void:
 	bubble.text = text
 	bubble.visible = true
 	bubble_timer.start(seconds)
+	_update_mouse_passthrough()
 
 
 func _spawn_heart() -> void:
@@ -811,6 +815,8 @@ func _update_mouse_passthrough() -> void:
 
 	var visible_rect = pet_sprite.visible_rect()
 	var rect = Rect2(pet_sprite.position + visible_rect.position, visible_rect.size).grow(16.0)
+	if bubble.visible:
+		rect = rect.merge(Rect2(bubble.position, bubble.get_minimum_size()).grow(12.0))
 	window.mouse_passthrough_polygon = _rect_polygon(rect)
 
 
