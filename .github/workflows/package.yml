@@ -6,6 +6,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   package:
     name: ${{ matrix.target }}
@@ -47,3 +50,22 @@ jobs:
         with:
           name: crayon-shinchan-pet-${{ matrix.target }}
           path: dist/CrayonShinchanPet-*.zip
+
+  release:
+    name: Release
+    needs: package
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: crayon-shinchan-pet-*
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/CrayonShinchanPet-*.zip
