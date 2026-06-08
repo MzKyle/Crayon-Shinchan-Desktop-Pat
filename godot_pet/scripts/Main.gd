@@ -27,6 +27,7 @@ const MENU_EXIT := 99
 
 const HIDE_EDGE_THRESHOLD := 52.0
 const PEEK_WINDOW_SIZE := Vector2i(112, 140)
+const INITIAL_WINDOW_MARGIN := 40
 const MISCHIEF_GRAB_SECONDS := 4.0
 const MISCHIEF_STOP_SIZE := Vector2(44, 30)
 
@@ -68,7 +69,8 @@ func _ready() -> void:
 	manifest = _load_json("res://assets/actions.json")
 	_configure_window()
 	_create_nodes()
-	_sync_window_size(true)
+	_sync_window_size(false)
+	_place_window_on_screen_if_needed()
 	physics.set_position_from_window(Vector2(get_window().position))
 	physics.set_gravity_enabled(gravity_enabled)
 	pet_sprite.play("idle")
@@ -269,6 +271,34 @@ func _play_area() -> Rect2:
 		Vector2(DisplayServer.screen_get_position(screen)),
 		Vector2(DisplayServer.screen_get_size(screen))
 	)
+
+
+func _place_window_on_screen_if_needed() -> void:
+	var window = get_window()
+	var window_rect = Rect2(Vector2(window.position), Vector2(window.size))
+	if _window_rect_is_on_screen(window_rect):
+		return
+	var area = _play_area()
+	var max_pos = area.position + area.size - Vector2(window.size) - Vector2(INITIAL_WINDOW_MARGIN, INITIAL_WINDOW_MARGIN)
+	var min_pos = area.position + Vector2(INITIAL_WINDOW_MARGIN, INITIAL_WINDOW_MARGIN)
+	if max_pos.x < min_pos.x:
+		max_pos.x = area.position.x
+		min_pos.x = area.position.x
+	if max_pos.y < min_pos.y:
+		max_pos.y = area.position.y
+		min_pos.y = area.position.y
+	window.position = Vector2i(round(max_pos.x), round(max_pos.y))
+
+
+func _window_rect_is_on_screen(rect: Rect2) -> bool:
+	for screen in range(DisplayServer.get_screen_count()):
+		var screen_rect = Rect2(
+			Vector2(DisplayServer.screen_get_position(screen)),
+			Vector2(DisplayServer.screen_get_size(screen))
+		)
+		if screen_rect.intersects(rect, true):
+			return true
+	return false
 
 
 func _movement_contact_rect() -> Rect2:
@@ -767,8 +797,8 @@ func _update_mouse_passthrough() -> void:
 		window.mouse_passthrough_polygon = PackedVector2Array()
 		return
 	if mischief_grab_active:
-		var rect = _mischief_stop_rect().grow(4.0)
-		window.mouse_passthrough_polygon = _rect_polygon(rect)
+		var size = Vector2(window.size)
+		window.mouse_passthrough_polygon = _rect_polygon(Rect2(Vector2.ZERO, size))
 		return
 	if mini_games != null and mini_games.active != "":
 		var size = Vector2(window.size)
@@ -780,18 +810,8 @@ func _update_mouse_passthrough() -> void:
 		return
 
 	var visible_rect = pet_sprite.visible_rect()
-	var rect = Rect2(pet_sprite.position + visible_rect.position, visible_rect.size).grow(18.0)
-	var cut = min(rect.size.x, rect.size.y) * 0.22
-	window.mouse_passthrough_polygon = PackedVector2Array([
-		rect.position + Vector2(cut, 0),
-		rect.position + Vector2(rect.size.x - cut, 0),
-		rect.position + Vector2(rect.size.x, cut),
-		rect.position + Vector2(rect.size.x, rect.size.y - cut),
-		rect.position + Vector2(rect.size.x - cut, rect.size.y),
-		rect.position + Vector2(cut, rect.size.y),
-		rect.position + Vector2(0, rect.size.y - cut),
-		rect.position + Vector2(0, cut),
-	])
+	var rect = Rect2(pet_sprite.position + visible_rect.position, visible_rect.size).grow(16.0)
+	window.mouse_passthrough_polygon = _rect_polygon(rect)
 
 
 func _rect_polygon(rect: Rect2) -> PackedVector2Array:
